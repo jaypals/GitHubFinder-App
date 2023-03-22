@@ -3,9 +3,11 @@ import { useParams, Link } from "react-router-dom";
 import GithubContext from "../context/github/GithubContext";
 import Spinner from "../components/layout/Spinner";
 import { FaCodepen, FaStore, FaUserFriends, FaUser } from "react-icons/fa";
+import RepoList from "../components/repos/RepoList";
+import { getUserAndRepos } from "../context/github/GithubActions";
 
 function User() {
-	const { getUser, user, isLoading } = useContext(GithubContext);
+	const { dispatch, user, isLoading, repos } = useContext(GithubContext);
 
 	const {
 		name,
@@ -27,8 +29,15 @@ function User() {
 	const params = useParams();
 
 	useEffect(() => {
-		getUser(params.login);
-	}, []);
+		dispatch({ type: "SET_LOADING" });
+
+		const getUserData = async () => {
+			const userData = await getUserAndRepos(params.login);
+			dispatch({ type: "GET_USER_AND_REPOS", payload: userData });
+		};
+
+		getUserData();
+	}, [dispatch, params.login]);
 
 	if (isLoading) return <Spinner />;
 
@@ -152,6 +161,8 @@ function User() {
 						</div>
 					</div>
 				</div>
+
+				<RepoList repos={repos} />
 			</div>
 		</>
 	);
